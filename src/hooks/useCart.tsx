@@ -1,44 +1,66 @@
-import { createContext, ReactNode, useContext, useState } from 'react';
-import { toast } from 'react-toastify';
-import { api } from '../services/api';
-import { Product, Stock } from '../types';
+import { createContext, ReactNode, useContext, useState } from 'react'
+import { toast } from 'react-toastify'
+import { api } from '../services/api'
+import { Product, Stock } from '../types'
 
 interface CartProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 interface UpdateProductAmount {
-  productId: number;
-  amount: number;
+  productId: number
+  amount: number
 }
 
 interface CartContextData {
-  cart: Product[];
-  addProduct: (productId: number) => Promise<void>;
-  removeProduct: (productId: number) => void;
-  updateProductAmount: ({ productId, amount }: UpdateProductAmount) => void;
+  cart: Product[]
+  addProduct: (productId: number) => Promise<void>
+  removeProduct: (productId: number) => void
+  updateProductAmount: ({ productId, amount }: UpdateProductAmount) => void
 }
 
-const CartContext = createContext<CartContextData>({} as CartContextData);
+const CartContext = createContext<CartContextData>({} as CartContextData)
 
 export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const [cart, setCart] = useState<Product[]>(() => {
-    // const storagedCart = Buscar dados do localStorage
+    const storagedCart = localStorage.getItem('@RocketShoes:cart')
 
-    // if (storagedCart) {
-    //   return JSON.parse(storagedCart);
-    // }
+    if (storagedCart) {
+      return JSON.parse(storagedCart)
+    }
 
-    return [];
-  });
+    return []
+  })
 
   const addProduct = async (productId: number) => {
     try {
-      // TODO
+      // verify if product exist in cart
+      const isProductExistInCart = cart.some(product =>
+        product.id === productId ? true : false
+      )
+
+      if (isProductExistInCart) {
+        const productsIncremented = cart.map(product => {
+          if (product.id === productId) {
+            product.amount++
+            return product
+          }
+          return product
+        })
+        setCart(productsIncremented)
+        localStorage.setItem(
+          '@RocketShoes:cart',
+          JSON.stringify(productsIncremented)
+        )
+      } else {
+        const response = await api.get(`/products/${productId}`)
+        setCart([...cart, response.data])
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
+      }
     } catch {
-      // TODO
+      toast.error('Erro na adição do produto')
     }
-  };
+  }
 
   const removeProduct = (productId: number) => {
     try {
@@ -46,18 +68,18 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     } catch {
       // TODO
     }
-  };
+  }
 
   const updateProductAmount = async ({
     productId,
-    amount,
+    amount
   }: UpdateProductAmount) => {
     try {
       // TODO
     } catch {
       // TODO
     }
-  };
+  }
 
   return (
     <CartContext.Provider
@@ -65,11 +87,11 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     >
       {children}
     </CartContext.Provider>
-  );
+  )
 }
 
 export function useCart(): CartContextData {
-  const context = useContext(CartContext);
+  const context = useContext(CartContext)
 
-  return context;
+  return context
 }
