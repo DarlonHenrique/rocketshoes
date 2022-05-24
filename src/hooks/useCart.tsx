@@ -84,9 +84,9 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
+      setCart(cart.filter(product => product.id != productId))
     } catch {
-      // TODO
+      toast.error('Erro na remoção do produto')
     }
   }
 
@@ -95,8 +95,37 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount
   }: UpdateProductAmount) => {
     try {
+      const response = await api.get(`/stock/${productId}`)
+
+      setCart(
+        cart.map(product => {
+          if (productId === product.id) {
+            const typeOfupdate =
+              amount > product.amount ? 'increment' : 'decrement'
+            switch (typeOfupdate) {
+              case 'increment':
+                if (product.amount < response.data.amount) {
+                  product.amount = amount
+                  console.log(`new product amount: ${product.amount}`)
+                  return product
+                } else {
+                  toast.error('Quantidade solicitada fora de estoque')
+                }
+                break
+              case 'decrement':
+                product.amount = amount
+                console.log(`new product amount: ${product.amount}`)
+                return product
+              default:
+                toast.error('Erro na alteração de quantidade do produto')
+                break
+            }
+          }
+          return product
+        })
+      )
     } catch {
-      // TODO
+      toast.error('Erro na alteração de quantidade do produto')
     }
   }
 
