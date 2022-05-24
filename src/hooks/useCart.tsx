@@ -1,7 +1,13 @@
-import { createContext, ReactNode, useContext, useState } from 'react'
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState
+} from 'react'
 import { toast } from 'react-toastify'
 import { api } from '../services/api'
-import { Product, Stock } from '../types'
+import { Product } from '../types'
 
 interface CartProviderProps {
   children: ReactNode
@@ -25,6 +31,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const [cart, setCart] = useState<Product[]>(() => {
     const storagedCart = localStorage.getItem('@RocketShoes:cart')
 
+    console.log(storagedCart)
     if (storagedCart) {
       return JSON.parse(storagedCart)
     }
@@ -32,31 +39,16 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     return []
   })
 
+  useEffect(() => {
+    localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
+  }, [cart])
+
   const addProduct = async (productId: number) => {
     try {
-      // verify if product exist in cart
-      const isProductExistInCart = cart.some(product =>
-        product.id === productId ? true : false
-      )
-
-      if (isProductExistInCart) {
-        const productsIncremented = cart.map(product => {
-          if (product.id === productId) {
-            product.amount++
-            return product
-          }
-          return product
-        })
-        setCart(productsIncremented)
-        localStorage.setItem(
-          '@RocketShoes:cart',
-          JSON.stringify(productsIncremented)
-        )
-      } else {
-        const response = await api.get(`/products/${productId}`)
-        setCart([...cart, response.data])
-        localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
-      }
+      const response = await api.get(`/products/${productId}`)
+      const product = response.data
+      product.amount = 1
+      setCart([...cart, product])
     } catch {
       toast.error('Erro na adição do produto')
     }
@@ -75,7 +67,6 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount
   }: UpdateProductAmount) => {
     try {
-      // TODO
     } catch {
       // TODO
     }
