@@ -31,7 +31,6 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const [cart, setCart] = useState<Product[]>(() => {
     const storagedCart = localStorage.getItem('@RocketShoes:cart')
 
-    console.log(storagedCart)
     if (storagedCart) {
       return JSON.parse(storagedCart)
     }
@@ -56,17 +55,23 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
         setCart([...cart, product])
       }
 
-      const incrementProduct = (productId: number) => {
-        const newCart = cart.map(product => {
-          if (productId === product.id) {
-            product.amount++
+      const incrementProduct = async (productId: number) => {
+        const response = await api.get(`stock/${productId}`)
+
+        setCart(
+          cart.map(product => {
+            if (productId === product.id) {
+              if (product.amount < response.data.amount) {
+                product.amount++
+                return product
+              } else {
+                toast.error('Quantidade solicitada fora de estoque')
+              }
+            }
+
             return product
-          }
-
-          return product
-        })
-
-        setCart(newCart)
+          })
+        )
       }
 
       isProductExistInCart
