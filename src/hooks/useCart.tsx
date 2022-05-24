@@ -45,10 +45,33 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const addProduct = async (productId: number) => {
     try {
-      const response = await api.get(`/products/${productId}`)
-      const product = response.data
-      product.amount = 1
-      setCart([...cart, product])
+      const isProductExistInCart = cart.some(product =>
+        productId === product.id ? true : false
+      )
+
+      const addNewProduct = async (productId: number) => {
+        const response = await api.get(`/products/${productId}`)
+        const product = response.data
+        product.amount = 1
+        setCart([...cart, product])
+      }
+
+      const incrementProduct = (productId: number) => {
+        const newCart = cart.map(product => {
+          if (productId === product.id) {
+            product.amount++
+            return product
+          }
+
+          return product
+        })
+
+        setCart(newCart)
+      }
+
+      isProductExistInCart
+        ? incrementProduct(productId)
+        : addNewProduct(productId)
     } catch {
       toast.error('Erro na adição do produto')
     }
