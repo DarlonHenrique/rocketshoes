@@ -38,44 +38,36 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     return []
   })
 
-  useEffect(() => {
-    localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
-  }, [cart])
-
   const addProduct = async (productId: number) => {
     try {
-      const response = await api.get(`/products/${productId}`)
-      if (response.status != 200) {
-        toast.error('Erro na adição do produto')
-      } else {
-        const addNewProduct = () => {
-          const product = response.data
-          product.amount = 1
-          setCart([...cart, product])
-        }
+      const updatedCart = [...cart]
+      const productExists = updatedCart.find(
+        product => product.id === productId
+      )
 
-        const incrementProduct = (productId: number) => {
-          setCart(
-            cart.map(product => {
-              if (productId === product.id) {
-                if (product.amount < response.data.amount) {
-                  product.amount++
-                  return product
-                } else {
-                  toast.error('Quantidade solicitada fora de estoque')
-                }
-              }
+      const stock = await api.get(`/stock/${productId}`)
+      const stockAmount = stock.data.amount
+      const currentAmount = productExists ? productExists.amount : 0
+      const amount = currentAmount + 1
 
-              return product
-            })
-          )
-        }
-
-        const isProductExistInCart = cart.some(product =>
-          productId === product.id ? true : false
-        )
-        isProductExistInCart ? incrementProduct(productId) : addNewProduct()
+      if (amount > stockAmount) {
+        toast.error('Quantidade solicitada fora de estoque')
+        return
       }
+
+      if (productExists) {
+        productExists.amount = amount
+      } else {
+        const product = await api.get(`/products/${productId}`)
+        const newProduct = {
+          ...product.data,
+          amount: 1
+        }
+
+        updatedCart.push(newProduct)
+      }
+      setCart(updatedCart)
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
     } catch {
       toast.error('Erro na adição do produto')
     }
