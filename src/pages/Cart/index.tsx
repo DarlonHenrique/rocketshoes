@@ -44,10 +44,6 @@ const Cart = (): JSX.Element => {
     })
   }
 
-  function handleRemoveProduct(productId: number) {
-    removeProduct(productId)
-  }
-
   return (
     <Container>
       <ProductTable>
@@ -60,8 +56,8 @@ const Cart = (): JSX.Element => {
             <th aria-label='delete icon' />
           </tr>
         </thead>
-        {cart.map(product => (
-          <tbody>
+        <tbody>
+          {cart.map(product => (
             <tr key={product.id} data-testid='product'>
               <td>
                 <img src={product.image} alt={product.title} />
@@ -102,14 +98,14 @@ const Cart = (): JSX.Element => {
                 <button
                   type='button'
                   data-testid='remove-product'
-                  onClick={() => handleRemoveProduct(product.id)}
+                  onClick={() => removeProduct(product.id)}
                 >
                   <MdDelete size={20} />
                 </button>
               </td>
             </tr>
-          </tbody>
-        ))}
+          ))}
+        </tbody>
       </ProductTable>
 
       <footer>

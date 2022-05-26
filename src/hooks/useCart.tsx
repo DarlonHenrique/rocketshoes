@@ -44,47 +44,38 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const addProduct = async (productId: number) => {
     try {
-      const isProductExistInCart = cart.some(product =>
-        productId === product.id ? true : false
-      )
-
-      const fetchProduct = async (productId: number) => {
-        const response = await api.get(`/products/${productId}`)
-        if (response.status === 200) {
-          return response.data
-        } else {
-          toast.error('Erro na adição do produto')
+      const response = await api.get(`/products/${productId}`)
+      if (response.status != 200) {
+        toast.error('Erro na adição do produto')
+      } else {
+        const addNewProduct = () => {
+          const product = response.data
+          product.amount = 1
+          setCart([...cart, product])
         }
-      }
 
-      const addNewProduct = async (productId: number) => {
-        const product = await fetchProduct(productId)
-        product.amount = 1
-        setCart([...cart, product])
-      }
-
-      const incrementProduct = async (productId: number) => {
-        const response = await api.get(`stock/${productId}`)
-
-        setCart(
-          cart.map(product => {
-            if (productId === product.id) {
-              if (product.amount < response.data.amount) {
-                product.amount++
-                return product
-              } else {
-                toast.error('Quantidade solicitada fora de estoque')
+        const incrementProduct = (productId: number) => {
+          setCart(
+            cart.map(product => {
+              if (productId === product.id) {
+                if (product.amount < response.data.amount) {
+                  product.amount++
+                  return product
+                } else {
+                  toast.error('Quantidade solicitada fora de estoque')
+                }
               }
-            }
 
-            return product
-          })
+              return product
+            })
+          )
+        }
+
+        const isProductExistInCart = cart.some(product =>
+          productId === product.id ? true : false
         )
+        isProductExistInCart ? incrementProduct(productId) : addNewProduct()
       }
-
-      isProductExistInCart
-        ? incrementProduct(productId)
-        : addNewProduct(productId)
     } catch {
       toast.error('Erro na adição do produto')
     }
