@@ -61,7 +61,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       }
 
       setCart(updatedCart)
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
     } catch {
       toast.error('Erro na adição do produto')
     }
@@ -78,7 +78,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
         // findIndex return -1 if not found the product in the cart array
         updatedCart.splice(productIndex, 1)
         setCart(updatedCart)
-        localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
       } else {
         throw Error()
       }
