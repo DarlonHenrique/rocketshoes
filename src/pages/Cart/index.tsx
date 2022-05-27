@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   MdDelete,
   MdAddCircleOutline,
@@ -20,13 +19,15 @@ interface Product {
 const Cart = (): JSX.Element => {
   const { cart, removeProduct, updateProductAmount } = useCart()
 
+  const cartFormatted = cart.map(product => ({
+    ...product,
+    priceFormatted: formatPrice(product.price),
+    subTotal: formatPrice(product.price * product.amount)
+  }))
+
   const total = formatPrice(
     cart.reduce((sumTotal, product) => {
-      if (product.price > 0) {
-        sumTotal += product.price * product.amount
-        return sumTotal
-      }
-      return sumTotal
+      return sumTotal + product.price * product.amount
     }, 0)
   )
 
@@ -44,6 +45,10 @@ const Cart = (): JSX.Element => {
     })
   }
 
+  function handleRemoveProduct(productId: number) {
+    removeProduct(productId)
+  }
+
   return (
     <Container>
       <ProductTable>
@@ -57,14 +62,14 @@ const Cart = (): JSX.Element => {
           </tr>
         </thead>
         <tbody>
-          {cart.map(product => (
+          {cartFormatted.map(product => (
             <tr key={product.id} data-testid='product'>
               <td>
                 <img src={product.image} alt={product.title} />
               </td>
               <td>
                 <strong>{product.title}</strong>
-                <span>{formatPrice(product.price)}</span>
+                <span>{product.priceFormatted}</span>
               </td>
               <td>
                 <div>
@@ -92,13 +97,13 @@ const Cart = (): JSX.Element => {
                 </div>
               </td>
               <td>
-                <strong>{formatPrice(product.price * product.amount)}</strong>
+                <strong>{product.subTotal}</strong>
               </td>
               <td>
                 <button
                   type='button'
                   data-testid='remove-product'
-                  onClick={() => removeProduct(product.id)}
+                  onClick={() => handleRemoveProduct(product.id)}
                 >
                   <MdDelete size={20} />
                 </button>
